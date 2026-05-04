@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>La Micro-Informatique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#06080f;--bg2:#0d1120;--bg3:#141828;--gold:#c9a84c;--gold2:#e8c97a;--text:#ddd8cc;--muted:#7a7669;--border:#2a2d3a;--accent:#0d1120}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#06080f}
+body{font-family:'Cormorant Garamond',Georgia,serif;color:var(--text)}
+#app{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
+.header{padding-top:calc(14px + env(safe-area-inset-top));background:var(--bg);flex-shrink:0;border-bottom:1px solid var(--border)}
+.header-inner{display:flex;align-items:center;justify-content:space-between;padding:0 16px 8px}
+.app-title{font-family:'IM Fell English',serif;font-size:17px;color:var(--gold);letter-spacing:.5px}
+.lang-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:16px;cursor:pointer}
+.tabs{display:flex;overflow-x:auto;scrollbar-width:none;padding:0 8px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;background:none;border:none;padding:8px 14px;font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.main{flex:1;overflow-y:auto;padding-bottom:calc(12px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+.tab-content{display:none}.tab-content.active{display:block}
+.era-header{padding:10px 16px 6px;background:var(--bg);position:sticky;top:0;z-index:5;border-bottom:1px solid var(--border)}
+.era-title{font-family:'IM Fell English',serif;font-size:14px;color:var(--gold);text-transform:uppercase;letter-spacing:1px}
+.chrono-card{background:var(--bg2);border-left:3px solid var(--gold);margin:8px 12px;border-radius:6px;padding:12px 14px}
+.chrono-top{display:flex;align-items:flex-start;gap:10px}
+.chrono-emoji{font-size:24px;flex-shrink:0;line-height:1}
+.chrono-date{font-family:'IM Fell English',serif;font-size:13px;color:var(--gold2);margin-bottom:2px}
+.chrono-name{font-size:16px;font-weight:600;color:var(--text);line-height:1.2}
+.chrono-body{font-size:13px;color:var(--muted);line-height:1.6;margin-top:8px}
+.machines-list{padding:8px 12px}
+.machine-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.machine-header{display:flex;gap:12px;padding:12px;cursor:pointer}
+.machine-img-wrap{width:72px;height:72px;flex-shrink:0;border-radius:8px;overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:32px}
+.machine-img-wrap img{width:100%;height:100%;object-fit:cover}
+.machine-name{font-family:'IM Fell English',serif;font-size:16px;color:var(--gold2);margin-bottom:2px}
+.machine-date{font-size:12px;color:var(--muted);margin-bottom:5px}
+.machine-short{font-size:13px;color:var(--text);line-height:1.5}
+.machine-detail{display:none;padding:0 12px 12px;border-top:1px solid var(--border)}
+.machine-detail.open{display:block}
+.machine-detail p{font-size:13px;line-height:1.7;color:var(--text);margin-top:10px}
+.machine-inventor{font-size:12px;color:var(--gold);margin-top:6px;font-style:italic}
+.quiz-wrap{padding:12px}
+.quiz-score-bar{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.quiz-score-label{font-size:13px;color:var(--muted)}
+.quiz-score-val{font-family:'IM Fell English',serif;font-size:20px;color:var(--gold)}
+.quiz-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.quiz-num{font-size:11px;color:var(--muted);margin-bottom:6px}
+.quiz-q{font-size:15px;font-weight:600;line-height:1.5;margin-bottom:12px;color:var(--text)}
+.quiz-answers{display:flex;flex-direction:column;gap:8px}
+.quiz-answer{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);cursor:pointer;text-align:left;font-family:inherit;transition:all .2s;width:100%}
+.quiz-answer.correct{background:#1a3a1f;border-color:#4a7c59;color:#8abf9a}
+.quiz-answer.wrong{background:#3a1a1a;border-color:#7c4a4a;color:#bf8a8a}
+.quiz-answer.revealed{pointer-events:none}
+.quiz-reset{width:100%;background:var(--accent);border:1px solid var(--gold);border-radius:8px;padding:12px;font-family:'IM Fell English',serif;font-size:16px;color:var(--gold);cursor:pointer;margin-top:8px}
+.settings-panel{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:100;flex-direction:column;overflow-y:auto}
+.settings-panel.open{display:flex}
+.settings-header{padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:12px;padding-left:16px;padding-right:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.settings-back{background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;padding:0}
+.settings-title{font-family:'IM Fell English',serif;font-size:18px;color:var(--gold)}
+.settings-body{padding:16px;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.settings-section-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.apps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.app-item{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.app-icon-wrap{width:58px;height:58px;border-radius:13px;background:var(--bg3);border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:26px}
+.app-icon-wrap img{width:100%;height:100%;object-fit:cover;border-radius:12px}
+.app-name-lbl{font-size:9px;color:var(--muted);text-align:center;line-height:1.3}
+.settings-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;cursor:pointer;font-family:inherit;width:100%;text-align:left;margin-bottom:8px}
+.badge-wrap{margin-top:16px;text-align:center}
+.badge-wrap img{height:40px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-inner">
+      <div class="app-title" id="appTitleEl">💾 La Micro-Informatique</div>
+      <button class="lang-btn" onclick="toggleLang()">🇬🇧</button>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('chrono',this)" id="tab-chrono">🕰️ Chronologie</button>
+      <button class="tab" onclick="switchTab('machines',this)" id="tab-machines">🖥️ Machines</button>
+      <button class="tab" onclick="switchTab('quiz',this)" id="tab-quiz">🎓 Quiz</button>
+      <button class="tab" onclick="openSettings()">⚙️ Apps</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="tab-content active" id="tab-chrono-content"></div>
+    <div class="tab-content" id="tab-machines-content"><div class="machines-list" id="machinesList"></div></div>
+    <div class="tab-content" id="tab-quiz-content">
+      <div class="quiz-wrap">
+        <div class="quiz-score-bar">
+          <span class="quiz-score-label" id="quizScoreLabel">Score</span>
+          <span class="quiz-score-val" id="quizScoreVal">0 / 0</span>
+        </div>
+        <div id="quizContainer"></div>
+        <button class="quiz-reset" onclick="resetQuiz()" id="quizResetBtn" style="display:none">🔄 Recommencer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-header">
+    <button class="settings-back" onclick="closeSettings()">←</button>
+    <div class="settings-title" id="settingsTitleEl">Autres Apps</div>
+  </div>
+  <div class="settings-body">
+    <div class="settings-section-title" id="settingsAppsLbl">Mes applications</div>
+    <div class="apps-grid" id="appsGrid"></div>
+    <div class="badge-wrap"><img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/fr-fr" alt="App Store"></div>
+    <div style="margin-top:20px">
+      <button class="settings-btn" onclick="window.open('https://migapple.github.io','_system')">🌐 migapple.github.io</button>
+      <button class="settings-btn" onclick="window.open('https://migapple.github.io/microinformatique/','_system')">Support</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px">© Michel Garlandat</div>
+  </div>
+</div>
+
+<script>
+let lang='fr';
+function toggleLang(){
+  lang=lang==='fr'?'en':'fr';
+  document.querySelector('.lang-btn').textContent=lang==='fr'?'🇬🇧':'🇫🇷';
+  document.getElementById('appTitleEl').textContent=lang==='fr'?'💾 La Micro-Informatique':'💾 The Micro-Computer Era';
+  document.getElementById('settingsTitleEl').textContent=lang==='fr'?'Autres Apps':'Other Apps';
+  document.getElementById('settingsAppsLbl').textContent=lang==='fr'?'Mes applications':'My apps';
+  document.getElementById('tab-chrono').textContent=lang==='fr'?'🕰️ Chronologie':'🕰️ Timeline';
+  document.getElementById('tab-machines').textContent=lang==='fr'?'🖥️ Machines':'🖥️ Machines';
+  document.getElementById('tab-quiz').textContent=lang==='fr'?'🎓 Quiz':'🎓 Quiz';
+  document.getElementById('quizResetBtn').textContent=lang==='fr'?'🔄 Recommencer':'🔄 Restart';
+  renderChrono();renderMachines();if(quizInitialized)renderQuiz();
+}
+function switchTab(name,el){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name+'-content').classList.add('active');
+  el.classList.add('active');
+  if(name==='quiz'&&!quizInitialized)initQuiz();
+}
+function openSettings(){document.getElementById('settingsPanel').classList.add('open');loadApps();}
+function closeSettings(){document.getElementById('settingsPanel').classList.remove('open');}
+
+const ERAS=[
+  {fr:'Les Précurseurs (1973–1975)',en:'The Precursors (1973–1975)',items:[
+    {emoji:'🔧',dateFr:'1973',dateEn:'1973',
+     fr:'Micral N — Premier micro-ordinateur commercial',en:'Micral N — First commercial microcomputer',
+     descFr:'Conçu par le Français François Gernelle pour R2E, le Micral N est le premier ordinateur basé sur un microprocesseur (Intel 8008) vendu commercialement. Proposé à 1 750 dollars, il précède l\'Altair de deux ans mais reste confidentiel hors de France.',
+     descEn:'Designed by Frenchman François Gernelle for R2E, the Micral N is the first computer based on a microprocessor (Intel 8008) sold commercially. Priced at $1,750, it precedes the Altair by two years but remains little known outside France.'},
+    {emoji:'🎰',dateFr:'Janvier 1975',dateEn:'January 1975',
+     fr:'Altair 8800 — L\'étincelle du mouvement',en:'Altair 8800 — The spark of the movement',
+     descFr:'Le magazine Popular Electronics publie le kit Altair 8800 de MITS, basé sur l\'Intel 8080, vendu 397 dollars. Il déclenche la création des clubs d\'informatique amateurs et inspire directement Bill Gates et Paul Allen.',
+     descEn:'Popular Electronics publishes the MITS Altair 8800 kit, based on Intel 8080, sold for $397. It triggers amateur computing clubs and directly inspires Bill Gates and Paul Allen.'},
+    {emoji:'💻',dateFr:'Avril 1975',dateEn:'April 1975',
+     fr:'Microsoft — La naissance de Gates et Allen',en:'Microsoft — Gates and Allen\'s birth',
+     descFr:'Bill Gates (19 ans) et Paul Allen fondent Microsoft à Albuquerque pour vendre leur interpréteur Altair BASIC. Leur pari : un logiciel sur chaque ordinateur personnel. En dix ans, ils contrôleront le marché mondial des OS.',
+     descEn:'Bill Gates (age 19) and Paul Allen found Microsoft in Albuquerque to sell their Altair BASIC interpreter. Their bet: software on every personal computer. In ten years, they control the global OS market.'},
+  ]},
+  {fr:'L\'Explosion (1976–1982)',en:'The Explosion (1976–1982)',items:[
+    {emoji:'🍎',dateFr:'1976',dateEn:'1976',
+     fr:'Apple I — Wozniak dans son garage',en:'Apple I — Wozniak in his garage',
+     descFr:'Steve Wozniak conçoit l\'Apple I, vendu 666,66 dollars en kit. Jobs convainc de le commercialiser. Ils fondent Apple Computer le 1er avril 1976 dans le garage familial de Los Altos. Seulement 200 exemplaires produits.',
+     descEn:'Steve Wozniak designs the Apple I, sold for $666.66 as a kit. Jobs convinces him to commercialize it. They found Apple Computer on April 1, 1976, in the Los Altos family garage. Only 200 units produced.'},
+    {emoji:'🖥️',dateFr:'1977',dateEn:'1977',
+     fr:'Apple II, TRS-80, Commodore PET — L\'année fondatrice',en:'Apple II, TRS-80, Commodore PET — The founding year',
+     descFr:'1977 voit naître trois machines fondatrices : l\'Apple II (couleur, son, extensible), le TRS-80 de Tandy/Radio Shack et le Commodore PET. Ces premiers micros "prêts à l\'emploi" s\'adressent au grand public.',
+     descEn:'1977 sees three founding machines: the Apple II (color, sound, expandable), the TRS-80, and the Commodore PET. These first ready-to-use microcomputers target the general public.'},
+    {emoji:'🕹️',dateFr:'1977',dateEn:'1977',
+     fr:'Atari 2600 — Le jeu vidéo grand public',en:'Atari 2600 — Mass market gaming',
+     descFr:'Atari lance la 2600, première console à cartouches interchangeables diffusée à grande échelle. Avec Space Invaders en 1980, ses ventes explosent et popularisent le jeu vidéo dans les foyers.',
+     descEn:'Atari launches the 2600, the first widely distributed cartridge-based console. With Space Invaders in 1980, its sales explode and video games enter homes worldwide.'},
+    {emoji:'💾',dateFr:'1979',dateEn:'1979',
+     fr:'VisiCalc — Le premier killer app',en:'VisiCalc — The first killer app',
+     descFr:'Dan Bricklin et Bob Frankston créent VisiCalc pour Apple II : premier tableur de l\'histoire. Si utile que les comptables achètent un Apple II uniquement pour VisiCalc — le concept de "killer app" est né.',
+     descEn:'Dan Bricklin and Bob Frankston create VisiCalc for Apple II: the first spreadsheet ever. So useful that accountants buy Apple IIs solely for VisiCalc — the "killer app" concept is born.'},
+    {emoji:'🧱',dateFr:'1982',dateEn:'1982',
+     fr:'Commodore 64 — L\'ordinateur le plus vendu',en:'Commodore 64 — The best-selling computer',
+     descFr:'Le Commodore 64 devient l\'ordinateur le plus vendu de l\'histoire avec 12 à 17 millions d\'exemplaires. Sa puce sonore SID et ses capacités graphiques en font la machine de référence des années 80 en Europe.',
+     descEn:'The Commodore 64 becomes the best-selling computer in history with 12 to 17 million units. Its SID sound chip and graphics make it the reference machine of the 80s in Europe.'},
+  ]},
+  {fr:'IBM et le Clonage (1981–1984)',en:'IBM and the Clone Era (1981–1984)',items:[
+    {emoji:'🏢',dateFr:'Août 1981',dateEn:'August 1981',
+     fr:'IBM PC — La légitimation du marché',en:'IBM PC — Market legitimation',
+     descFr:'IBM lance l\'IBM PC 5150 à 1 565 dollars. En choisissant une architecture ouverte (Intel 8088 + MS-DOS), IBM légitimise le micro en entreprise, mais crée les conditions de sa propre marginalisation par les clones.',
+     descEn:'IBM launches the IBM PC 5150 at $1,565. By choosing an open architecture (Intel 8088 + MS-DOS), IBM legitimizes the microcomputer in business, but creates conditions for its own marginalization by clones.'},
+    {emoji:'📋',dateFr:'1981',dateEn:'1981',
+     fr:'MS-DOS — La victoire de Microsoft',en:'MS-DOS — Microsoft\'s victory',
+     descFr:'Microsoft achète QDOS pour 75 000 dollars, le rebaptise MS-DOS et le licence à IBM en conservant les droits de revente. Cette décision fait de MS-DOS le système universel des PC clones et bâtit l\'empire Microsoft.',
+     descEn:'Microsoft buys QDOS for $75,000, renames it MS-DOS and licenses it to IBM while retaining resale rights. This decision makes MS-DOS the universal PC clone OS and builds the Microsoft empire.'},
+    {emoji:'🔀',dateFr:'1982',dateEn:'1982',
+     fr:'Compaq — Les clones PC',en:'Compaq — The PC clones',
+     descFr:'Compaq lance le premier clone IBM PC 100% compatible. Son succès prouve que l\'architecture ouverte d\'IBM peut être copiée légalement. Des centaines de fabricants suivent, créant l\'écosystème PC dominant.',
+     descEn:'Compaq launches the first 100% IBM PC-compatible clone. Its success proves IBM\'s open architecture can be legally copied. Hundreds of manufacturers follow, creating the dominant PC ecosystem.'},
+    {emoji:'🖱️',dateFr:'24 janvier 1984',dateEn:'January 24, 1984',
+     fr:'Macintosh — L\'interface graphique pour tous',en:'Macintosh — GUI for everyone',
+     descFr:'Apple lance le Mac avec la pub "1984" de Ridley Scott au Super Bowl. Premier grand public avec GUI et souris, il démocratise le WYSIWYG. Son prix de 2 495 dollars freine l\'adoption en entreprise mais révolutionne la création graphique.',
+     descEn:'Apple launches the Mac with Ridley Scott\'s "1984" Super Bowl commercial. The first mass-market computer with GUI and mouse, it democratizes WYSIWYG. Its $2,495 price limits enterprise adoption but revolutionizes graphic design.'},
+  ]},
+  {fr:'Logiciels & Réseaux (1985–1994)',en:'Software & Networks (1985–1994)',items:[
+    {emoji:'🪟',dateFr:'Novembre 1985',dateEn:'November 1985',
+     fr:'Windows 1.0 — Microsoft entre dans le graphique',en:'Windows 1.0 — Microsoft goes graphical',
+     descFr:'Microsoft lance Windows 1.0, interface graphique sur MS-DOS. Windows 3.0 (1990) est le premier succès, suivi de Windows 95 qui redéfinit l\'interface utilisateur pour une génération.',
+     descEn:'Microsoft launches Windows 1.0, a graphical interface over MS-DOS. Windows 3.0 (1990) is the first success, followed by Windows 95 which redefines the user interface for a generation.'},
+    {emoji:'📰',dateFr:'1985',dateEn:'1985',
+     fr:'PageMaker — La PAO naît',en:'PageMaker — Desktop publishing is born',
+     descFr:'Aldus PageMaker pour Macintosh, combiné à la LaserWriter et PostScript d\'Adobe, invente la PAO. Pour la première fois, une seule personne peut concevoir et préparer un document à imprimer.',
+     descEn:'Aldus PageMaker for Macintosh, combined with Apple\'s LaserWriter and Adobe PostScript, invents desktop publishing. For the first time, one person can design and prepare a document for print.'},
+    {emoji:'🌍',dateFr:'1991',dateEn:'1991',
+     fr:'World Wide Web — Tim Berners-Lee',en:'World Wide Web — Tim Berners-Lee',
+     descFr:'Tim Berners-Lee au CERN invente le Web et publie le premier site. HTTP, HTML et les URL transforment Internet en réseau d\'information universel. Il choisit de ne pas breveter le Web — l\'une des décisions les plus généreuses de l\'histoire technologique.',
+     descEn:'Tim Berners-Lee at CERN invents the Web and publishes the first website. HTTP, HTML and URLs transform the Internet into a universal information network. He chooses not to patent the Web — one of the most generous decisions in technological history.'},
+    {emoji:'🐧',dateFr:'Août 1991',dateEn:'August 1991',
+     fr:'Linux — Linus Torvalds',en:'Linux — Linus Torvalds',
+     descFr:'Linus Torvalds, 21 ans, annonce sur Usenet développer un noyau OS "juste pour le fun". Linux devient le plus grand projet collaboratif de l\'histoire du logiciel et alimente Android, les serveurs web et les superordinateurs.',
+     descEn:'Linus Torvalds, age 21, announces on Usenet developing an OS kernel "just for fun". Linux becomes the largest collaborative software project in history and powers Android, web servers and supercomputers.'},
+    {emoji:'🔭',dateFr:'1993',dateEn:'1993',
+     fr:'Mosaic — Le premier navigateur graphique',en:'Mosaic — The first graphical browser',
+     descFr:'Marc Andreessen développe Mosaic, premier navigateur affichant images et texte ensemble. En 1994, il fonde Netscape. Mosaic transforme le Web d\'un outil académique en phénomène de masse mondial.',
+     descEn:'Marc Andreessen develops Mosaic, the first browser displaying images and text together. In 1994, he founds Netscape. Mosaic transforms the Web from an academic tool into a global mass phenomenon.'},
+  ]},
+  {fr:'Internet et le Multimédia (1995–2001)',en:'Internet and Multimedia (1995–2001)',items:[
+    {emoji:'🪟',dateFr:'Août 1995',dateEn:'August 1995',
+     fr:'Windows 95 — L\'interface moderne',en:'Windows 95 — The modern interface',
+     descFr:'Windows 95 est lancé avec les Rolling Stones ("Start Me Up"). 7 millions d\'exemplaires en 5 semaines. Il introduit le bouton Démarrer, la barre des tâches et intègre TCP/IP, connectant des millions de PC à Internet.',
+     descEn:'Windows 95 launches with Rolling Stones music ("Start Me Up"). 7 million copies in 5 weeks. It introduces the Start button, taskbar and integrates TCP/IP, connecting millions of PCs to the Internet.'},
+    {emoji:'🔍',dateFr:'Septembre 1998',dateEn:'September 1998',
+     fr:'Google — Le moteur de recherche',en:'Google — The search engine',
+     descFr:'Larry Page et Sergey Brin lancent Google depuis un garage à Menlo Park. Leur algorithme PageRank classe les pages par liens entrants. Google dépasse AltaVista, Lycos et Yahoo pour devenir la porte d\'entrée universelle du Web.',
+     descEn:'Larry Page and Sergey Brin launch Google from a Menlo Park garage. Their PageRank algorithm ranks pages by incoming links. Google surpasses AltaVista, Lycos and Yahoo to become the universal Web gateway.'},
+    {emoji:'🎵',dateFr:'1999',dateEn:'1999',
+     fr:'Napster — La révolution du partage',en:'Napster — The sharing revolution',
+     descFr:'Shawn Fanning (18 ans) crée Napster, réseau P2P d\'échange de MP3. En 18 mois, 80 millions d\'utilisateurs. Fermé en justice en 2001, il invente le modèle qui donnera naissance à iTunes et Spotify.',
+     descEn:'Shawn Fanning (age 18) creates Napster, a P2P MP3 sharing network. In 18 months, 80 million users. Shut down in court in 2001, it invents the model that gives birth to iTunes and Spotify.'},
+    {emoji:'💥',dateFr:'Mars 2000',dateEn:'March 2000',
+     fr:'Bulle Internet — Le crash dot-com',en:'Dot-com bubble — The crash',
+     descFr:'Le NASDAQ culmine à 5 048 points le 10 mars 2000 avant de chuter de 78%. Des centaines de start-ups disparaissent. Les survivants (Amazon, Google, eBay) en sortent renforcés pour dominer la décennie suivante.',
+     descEn:'NASDAQ peaks at 5,048 points on March 10, 2000 before crashing 78%. Hundreds of startups disappear. Survivors (Amazon, Google, eBay) emerge stronger to dominate the next decade.'},
+  ]},
+  {fr:'L\'Ère Mobile & Cloud (2001–2015)',en:'The Mobile & Cloud Era (2001–2015)',items:[
+    {emoji:'🎵',dateFr:'Octobre 2001',dateEn:'October 2001',
+     fr:'iPod & iTunes — Apple réinvente la musique',en:'iPod & iTunes — Apple reinvents music',
+     descFr:'Jobs présente l\'iPod ("1 000 chansons dans votre poche") et iTunes Store en 2003 (0,99$/chanson). Apple démontre qu\'un modèle payant prime si l\'expérience est supérieure au piratage. L\'iPod préfigure l\'iPhone.',
+     descEn:'Jobs presents the iPod ("1,000 songs in your pocket") and iTunes Store in 2003 ($0.99/song). Apple shows a paid model wins if the experience beats piracy. The iPod prefigures the iPhone.'},
+    {emoji:'📱',dateFr:'9 janvier 2007',dateEn:'January 9, 2007',
+     fr:'iPhone — La révolution smartphone',en:'iPhone — The smartphone revolution',
+     descFr:'Jobs présente l\'iPhone : "Un iPod, un téléphone, et un communicateur Internet." L\'écran multi-touch, Safari mobile et l\'App Store (2008) redéfinissent l\'ordinateur personnel. Apple détient 50% des profits du marché mobile deux ans plus tard.',
+     descEn:'Jobs presents the iPhone: "An iPod, a phone, and an Internet communicator." Multi-touch screen, mobile Safari and the App Store (2008) redefine the personal computer. Apple holds 50% of mobile market profits two years later.'},
+    {emoji:'🤖',dateFr:'Septembre 2008',dateEn:'September 2008',
+     fr:'Android — L\'open source mobile',en:'Android — Mobile open source',
+     descFr:'Google lance Android 1.0 (HTC Dream). Gratuit pour les fabricants, Android conquiert 85% du marché mondial des smartphones en quelques années, portant Internet dans des milliards de poches.',
+     descEn:'Google launches Android 1.0 (HTC Dream). Free for manufacturers, Android captures 85% of the global smartphone market in a few years, carrying the Internet in billions of pockets.'},
+    {emoji:'☁️',dateFr:'2006',dateEn:'2006',
+     fr:'Amazon Web Services — Le Cloud',en:'Amazon Web Services — The Cloud',
+     descFr:'Amazon lance S3 et EC2, louant sa capacité informatique à des entreprises. Plus besoin de serveurs physiques. AWS génère aujourd\'hui plus de profits que tout Amazon réuni.',
+     descEn:'Amazon launches S3 and EC2, renting computing capacity to businesses. No more need for physical servers. AWS now generates more profit than all of Amazon combined.'},
+    {emoji:'📲',dateFr:'Avril 2010',dateEn:'April 2010',
+     fr:'iPad — La tablette grand public',en:'iPad — The mass-market tablet',
+     descFr:'Apple lance l\'iPad, nouvelle catégorie entre smartphone et portable. 300 000 exemplaires le premier jour. La tablette remet en question le PC traditionnel dans l\'éducation et la consommation de médias.',
+     descEn:'Apple launches the iPad, a new category between smartphone and laptop. 300,000 units on the first day. The tablet challenges the traditional PC in education and media consumption.'},
+  ]},
+  {fr:'Intelligence Artificielle (2010–)',en:'Artificial Intelligence (2010–)',items:[
+    {emoji:'🧠',dateFr:'2012',dateEn:'2012',
+     fr:'Deep Learning — La révolution neuronale',en:'Deep Learning — The neural revolution',
+     descFr:'L\'équipe de Geoffrey Hinton remporte ImageNet 2012 avec AlexNet, réduisant le taux d\'erreur de reconnaissance d\'images de 26% à 15%. Cette victoire déclenche la révolution du deep learning.',
+     descEn:'Geoffrey Hinton\'s team wins ImageNet 2012 with AlexNet, reducing image recognition error from 26% to 15%. This victory triggers the deep learning revolution.'},
+    {emoji:'🗣️',dateFr:'2014',dateEn:'2014',
+     fr:'Alexa, Siri, Cortana — L\'IA vocale',en:'Alexa, Siri, Cortana — Voice AI',
+     descFr:'Après Siri d\'Apple (2011), Amazon lance Echo/Alexa en 2014. Les assistants vocaux entrent dans les foyers. La reconnaissance vocale dépasse pour la première fois le taux d\'erreur humain en 2017.',
+     descEn:'After Apple\'s Siri (2011), Amazon launches Echo/Alexa in 2014. Voice assistants enter homes. Voice recognition surpasses human error rates for the first time in 2017.'},
+    {emoji:'🤯',dateFr:'30 novembre 2022',dateEn:'November 30, 2022',
+     fr:'ChatGPT — L\'IA générative pour tous',en:'ChatGPT — Generative AI for everyone',
+     descFr:'OpenAI lance ChatGPT. En 5 jours : 1 million d\'utilisateurs (Facebook : 10 mois). En 2 mois : 100 millions. Les LLM transforment la programmation, l\'écriture et redéfinissent la valeur du travail intellectuel.',
+     descEn:'OpenAI launches ChatGPT. In 5 days: 1 million users (Facebook: 10 months). In 2 months: 100 million. LLMs transform programming, writing and redefine the value of intellectual work.'},
+  ]},
+];
+
+// ── MACHINES avec wt: optimisés ──────────────────────────────────
+const MACHINES=[
+  {id:'m1',emoji:'🎰',
+   fr:'Altair 8800',en:'Altair 8800',date:'1975',
+   inventorFr:'Ed Roberts — MITS, États-Unis',inventorEn:'Ed Roberts — MITS, United States',
+   wt:'Altair_8800',                    // EN → photo iconique de la face avant
+   shortFr:'Premier micro grand public — sans clavier ni écran',shortEn:'First mass-market micro — no keyboard or screen',
+   detailFr:'L\'Altair 8800 se programmait en basculant des interrupteurs et se lisait sur des LED. Pourtant, il déclencha une révolution : le club Homebrew Computer Club, Bill Gates, Paul Allen, et la certitude que l\'informatique personnelle était possible.',
+   detailEn:'The Altair 8800 was programmed by toggling switches and read from LEDs. Yet it triggered a revolution: the Homebrew Computer Club, Bill Gates, Paul Allen, and the conviction that personal computing was possible.'},
+  {id:'m2',emoji:'🍎',
+   fr:'Apple II',en:'Apple II',date:'1977',
+   inventorFr:'Steve Wozniak — Apple, États-Unis',inventorEn:'Steve Wozniak — Apple, United States',
+   wt:'Apple_II',                       // EN → photo de la machine
+   shortFr:'Couleur, son, 8 slots — en production jusqu\'en 1993',shortEn:'Color, sound, 8 slots — in production until 1993',
+   detailFr:'L\'Apple II était une prouesse d\'ingénierie de Wozniak : couleurs, son, 8 slots d\'extension, clavier intégré. VisiCalc en fit un outil professionnel. Il resta en production seize ans.',
+   detailEn:'Wozniak\'s Apple II was an engineering marvel: colors, sound, 8 expansion slots, built-in keyboard. VisiCalc made it a serious professional tool. It stayed in production for sixteen years.'},
+  {id:'m3',emoji:'🧱',
+   fr:'Commodore 64',en:'Commodore 64',date:'1982',
+   inventorFr:'Jack Tramiel — Commodore, États-Unis',inventorEn:'Jack Tramiel — Commodore, United States',
+   wt:'Commodore_64',                   // FR et EN → bonne photo
+   shortFr:'12 à 17 millions d\'exemplaires — record historique',shortEn:'12 to 17 million units — all-time record',
+   detailFr:'Le C64 se distinguait par sa puce sonore SID et ses capacités graphiques exceptionnelles. Son catalogue de milliers de jeux et son prix plancher en firent la machine de référence des années 80 en Europe. Record absolu de ventes pour un ordinateur.',
+   detailEn:'The C64 stood out for its SID sound chip and exceptional graphics. Its catalog of thousands of games and rock-bottom price made it the reference machine of the 80s in Europe. Absolute sales record for a computer.'},
+  {id:'m4',emoji:'🏢',
+   fr:'IBM PC 5150',en:'IBM PC 5150',date:'1981',
+   inventorFr:'IBM, États-Unis',inventorEn:'IBM, United States',
+   wt:'IBM_Personal_Computer',          // EN → bonne photo
+   shortFr:'Architecture ouverte — père de tous les PC',shortEn:'Open architecture — father of all PCs',
+   detailFr:'IBM le conçoit en 12 mois avec des composants du marché. En choisissant une architecture ouverte, IBM crée les conditions de sa propre marginalisation par les clones. Mais il légitime définitivement l\'informatique personnelle en entreprise.',
+   detailEn:'IBM designs it in 12 months with off-the-shelf components. By choosing an open architecture, IBM creates conditions for its own marginalization by clones. But it permanently legitimizes personal computing in business.'},
+  {id:'m5',emoji:'🖱️',
+   fr:'Apple Macintosh 128K',en:'Apple Macintosh 128K',date:'1984',
+   inventorFr:'Jef Raskin & Steve Jobs — Apple',inventorEn:'Jef Raskin & Steve Jobs — Apple',
+   wt:'Macintosh_128K',                 // EN → photo du Mac original
+   shortFr:'Premier Mac — GUI et souris pour le grand public',shortEn:'First Mac — GUI and mouse for everyone',
+   detailFr:'Le Mac se présenta lui-même ("Hello") lors de sa première démo. Conçu par Raskin, transformé par Jobs, il popularisa la souris. Son architecture fermée garantissait une expérience cohérente — le modèle Apple encore aujourd\'hui.',
+   detailEn:'The Mac introduced itself ("Hello") at its first demo. Conceived by Raskin, transformed by Jobs, it popularized the mouse. Its closed architecture guaranteed a consistent experience — the Apple model still today.'},
+  {id:'m6',emoji:'🎮',
+   fr:'Nintendo NES',en:'Nintendo NES',date:'1983',
+   inventorFr:'Nintendo, Japon',inventorEn:'Nintendo, Japan',
+   wt:'Nintendo_Entertainment_System',  // EN → bonne photo de la console
+   shortFr:'La renaissance du jeu vidéo après le crash de 1983',shortEn:'The rebirth of gaming after the 1983 crash',
+   detailFr:'Après le crash de 1983, Nintendo relance le marché avec la Famicom puis la NES (US, 1985). Super Mario Bros., Zelda, Metroid définissent la grammaire du jeu vidéo moderne et Nintendo impose des standards de qualité durables.',
+   detailEn:'After the 1983 crash, Nintendo revives the market with the Famicom then the NES (US, 1985). Super Mario Bros., Zelda, Metroid define modern video game grammar and Nintendo imposes lasting quality standards.'},
+  {id:'m7',emoji:'🌐',
+   fr:'NeXT Cube',en:'NeXT Cube',date:'1988',
+   inventorFr:'Steve Jobs — NeXT Computer, États-Unis',inventorEn:'Steve Jobs — NeXT Computer, United States',
+   wt:'NeXT_Computer',                  // EN → photo du cube noir iconique
+   shortFr:'La machine sur laquelle le Web a été inventé',shortEn:'The machine on which the Web was invented',
+   detailFr:'Après son éviction d\'Apple, Jobs fonde NeXT. Le NeXT Cube à 6 500 dollars tournait NeXTSTEP (Objective-C). C\'est sur cette machine que Berners-Lee invente le Web au CERN en 1990. NeXTSTEP deviendra macOS.',
+   detailEn:'After being ousted from Apple, Jobs founds NeXT. The $6,500 NeXT Cube ran NeXTSTEP (Objective-C). It\'s on this machine that Berners-Lee invents the Web at CERN in 1990. NeXTSTEP will become macOS.'},
+  {id:'m8',emoji:'📱',
+   fr:'iPhone (1re génération)',en:'iPhone (1st generation)',date:'2007',
+   inventorFr:'Steve Jobs & Jony Ive — Apple',inventorEn:'Steve Jobs & Jony Ive — Apple',
+   wt:'IPhone_(1re_génération)',         // FR → essai, sinon EN
+   shortFr:'L\'ordinateur dans notre poche',shortEn:'The computer in our pocket',
+   detailFr:'L\'iPhone original : écran multi-touch 3,5", caméra 2 MP, Edge (pas encore 3G). Son design aluminium/verre et son interface sans stylet redéfinissent l\'ordinateur. 6,1 millions vendus la première année, App Store en 2008.',
+   detailEn:'The original iPhone: 3.5" multi-touch screen, 2 MP camera, Edge (not yet 3G). Its aluminum/glass design and stylus-free interface redefine the computer. 6.1 million sold in year one, App Store in 2008.'},
+  {id:'m9',emoji:'🤖',
+   fr:'Raspberry Pi',en:'Raspberry Pi',date:'2012',
+   inventorFr:'Eben Upton — Fondation Raspberry Pi, Royaume-Uni',inventorEn:'Eben Upton — Raspberry Pi Foundation, UK',
+   wt:'Raspberry_Pi',                   // EN → photo de la carte
+   shortFr:'Mini-ordinateur à 35$ — 50 millions vendus',shortEn:'$35 mini-computer — 50 million sold',
+   detailFr:'Conçu pour enseigner la programmation aux enfants, le Raspberry Pi à 35 dollars devient populaire chez les professionnels pour des projets embarqués et domotique. Plus de 50 millions d\'unités vendues dans le monde entier.',
+   detailEn:'Designed to teach programming to children, the $35 Raspberry Pi becomes popular with professionals for embedded projects and home automation. Over 50 million units sold worldwide.'},
+  {id:'m10',emoji:'☁️',
+   fr:'Amazon AWS (EC2)',en:'Amazon AWS (EC2)',date:'2006',
+   inventorFr:'Amazon Web Services, États-Unis',inventorEn:'Amazon Web Services, United States',
+   wt:'Amazon_Web_Services',            // EN → logo/photo
+   shortFr:'Le cloud computing comme service à la demande',shortEn:'Cloud computing as on-demand service',
+   detailFr:'EC2 permet de louer des serveurs virtuels à la seconde. Netflix, Airbnb, et des millions de start-ups naissent sans jamais posséder un seul serveur. AWS génère l\'essentiel des bénéfices d\'Amazon.',
+   detailEn:'EC2 allows renting virtual servers by the second. Netflix, Airbnb, and millions of startups are born without ever owning a server. AWS generates most of Amazon\'s profits.'},
+  {id:'m11',emoji:'🧠',
+   fr:'GPU NVIDIA (CUDA)',en:'NVIDIA GPU (CUDA)',date:'2006',
+   inventorFr:'Jensen Huang — NVIDIA, États-Unis',inventorEn:'Jensen Huang — NVIDIA, United States',
+   wt:'CUDA',                           // EN → photo d\'une puce/GPU
+   shortFr:'Le GPU, moteur inattendu de l\'intelligence artificielle',shortEn:'The GPU, unexpected engine of artificial intelligence',
+   detailFr:'NVIDIA lance CUDA pour utiliser les GPU en calcul scientifique. Les GPU, conçus pour le rendu 3D parallèle, se révèlent parfaits pour entraîner des réseaux de neurones. NVIDIA devient la société la plus valorisée au monde en 2024.',
+   detailEn:'NVIDIA launches CUDA to use GPUs for scientific computing. GPUs, designed for parallel 3D rendering, prove perfect for training neural networks. NVIDIA becomes the world\'s most valuable company in 2024.'},
+  {id:'m12',emoji:'🤯',
+   fr:'ChatGPT / GPT-4',en:'ChatGPT / GPT-4',date:'2022',
+   inventorFr:'Sam Altman & équipe — OpenAI, États-Unis',inventorEn:'Sam Altman & team — OpenAI, United States',
+   wt:'ChatGPT',                        // FR et EN → photo du logo
+   shortFr:'100 millions d\'utilisateurs en 2 mois',shortEn:'100 million users in 2 months',
+   detailFr:'ChatGPT atteint 100 millions d\'utilisateurs en 2 mois, battant tous les records. GPT-4 (2023) réussit les examens de droit et de médecine. Les LLM transforment la programmation, l\'écriture et la médecine.',
+   detailEn:'ChatGPT reaches 100 million users in 2 months, breaking all records. GPT-4 (2023) passes law and medical exams. LLMs transform programming, writing and medicine.'},
+];
+
+const QUIZ=[
+  {qFr:'Qui sont les fondateurs de Microsoft (1975) ?',qEn:'Who founded Microsoft in 1975?',
+   ans:['Bill Gates et Paul Allen','Steve Jobs et Steve Wozniak','Larry Page et Sergey Brin','Ed Roberts et Jack Tramiel'],correct:0},
+  {qFr:'Quel est le premier micro-ordinateur commercial de l\'histoire (1973) ?',qEn:'What was the first commercial microcomputer (1973)?',
+   ans:['Micral N (François Gernelle)','Altair 8800','Apple I','MITS 680'],correct:0},
+  {qFr:'Comment s\'appelait l\'OS qu\'IBM choisit en 1981 ?',qEn:'What OS did IBM choose in 1981?',
+   ans:['MS-DOS','CP/M','Unix','PC-DOS'],correct:0},
+  {qFr:'Où l\'iPhone a-t-il été présenté pour la première fois ?',qEn:'Where was the iPhone first presented?',
+   ans:['Macworld 2007','CES 2007','WWDC 2007','TED 2007'],correct:0},
+  {qFr:'Qui a inventé le World Wide Web en 1990 ?',qEn:'Who invented the World Wide Web in 1990?',
+   ans:['Tim Berners-Lee','Vint Cerf','Marc Andreessen','Linus Torvalds'],correct:0},
+  {qFr:'Sur quel ordinateur Tim Berners-Lee a-t-il inventé le Web ?',qEn:'On which computer did Tim Berners-Lee invent the Web?',
+   ans:['NeXT Cube','Apple II','IBM PC','Sun Workstation'],correct:0},
+  {qFr:'Quel étudiant finlandais crée Linux en 1991 ?',qEn:'Which Finnish student created Linux in 1991?',
+   ans:['Linus Torvalds','Edsger Dijkstra','Andrew Tanenbaum','Dennis Ritchie'],correct:0},
+  {qFr:'VisiCalc, premier tableur, tournait sur quel ordinateur ?',qEn:'VisiCalc, the first spreadsheet, ran on which computer?',
+   ans:['Apple II','Commodore 64','IBM PC','TRS-80'],correct:0},
+  {qFr:'Combien d\'exemplaires du Commodore 64 ont été vendus ?',qEn:'How many Commodore 64 units were sold?',
+   ans:['12 à 17 millions','2 millions','50 millions','6 millions'],correct:0},
+  {qFr:'Quelle chanson accompagnait le lancement de Windows 95 ?',qEn:'Which song accompanied the Windows 95 launch?',
+   ans:['Start Me Up','Jumpin\' Jack Flash','Paint It Black','Brown Sugar'],correct:0},
+  {qFr:'Qui crée Napster en 1999 ?',qEn:'Who created Napster in 1999?',
+   ans:['Shawn Fanning','Sean Parker','Justin Frankel','Bram Cohen'],correct:0},
+  {qFr:'Quelle compétition AlexNet remporte-t-il en 2012 ?',qEn:'Which competition did AlexNet win in 2012?',
+   ans:['ImageNet','Kaggle Grand Prix','DARPA Challenge','Turing Award'],correct:0},
+  {qFr:'En combien de jours ChatGPT a-t-il atteint 1 million d\'utilisateurs ?',qEn:'In how many days did ChatGPT reach 1 million users?',
+   ans:['5 jours','30 jours','10 jours','2 jours'],correct:0},
+  {qFr:'Qui fonde Google en 1998 ?',qEn:'Who founded Google in 1998?',
+   ans:['Larry Page et Sergey Brin','Jeff Bezos','Eric Schmidt','Vint Cerf'],correct:0},
+  {qFr:'Quel est le prix de lancement du Raspberry Pi (2012) ?',qEn:'What was the Raspberry Pi launch price (2012)?',
+   ans:['35 dollars','99 dollars','9,99 dollars','199 dollars'],correct:0},
+];
+
+// ── RENDER ───────────────────────────────────────────────────────
+function renderChrono(){
+  const c=document.getElementById('tab-chrono-content');c.innerHTML='';
+  ERAS.forEach(era=>{
+    const div=document.createElement('div');
+    const hdr=document.createElement('div');hdr.className='era-header';
+    hdr.innerHTML='<div class="era-title">'+(lang==='fr'?era.fr:era.en)+'</div>';
+    div.appendChild(hdr);
+    era.items.forEach(item=>{
+      const card=document.createElement('div');card.className='chrono-card';
+      card.innerHTML='<div class="chrono-top"><div class="chrono-emoji">'+item.emoji+'</div><div><div class="chrono-date">'+(lang==='fr'?item.dateFr:item.dateEn)+'</div><div class="chrono-name">'+(lang==='fr'?item.fr:item.en)+'</div></div></div><div class="chrono-body">'+(lang==='fr'?item.descFr:item.descEn)+'</div>';
+      div.appendChild(card);
+    });
+    c.appendChild(div);
+  });
+}
+
+const imgCache={};
+function renderMachines(){
+  const list=document.getElementById('machinesList');list.innerHTML='';
+  MACHINES.forEach(m=>{
+    const card=document.createElement('div');card.className='machine-card';
+    const hdr=document.createElement('div');hdr.className='machine-header';
+    hdr.onclick=()=>document.getElementById('det-'+m.id).classList.toggle('open');
+    const wrap=document.createElement('div');wrap.className='machine-img-wrap';wrap.id='imgwrap-'+m.id;
+    if(imgCache[m.id]){
+      const img=document.createElement('img');img.src=imgCache[m.id];wrap.appendChild(img);
+    } else {
+      wrap.textContent=m.emoji;
+      loadImg(m.id,m.wt,wrap);
+    }
+    const info=document.createElement('div');
+    info.innerHTML='<div class="machine-name">'+(lang==='fr'?m.fr:m.en)+'</div><div class="machine-date">'+m.date+'</div><div class="machine-short">'+(lang==='fr'?m.shortFr:m.shortEn)+'</div>';
+    hdr.appendChild(wrap);hdr.appendChild(info);
+    const det=document.createElement('div');det.className='machine-detail';det.id='det-'+m.id;
+    det.innerHTML='<p>'+(lang==='fr'?m.detailFr:m.detailEn)+'</p><div class="machine-inventor">'+(lang==='fr'?m.inventorFr:m.inventorEn)+'</div>';
+    card.appendChild(hdr);card.appendChild(det);list.appendChild(card);
+  });
+}
+
+async function loadImg(id,wt,wrap){
+  if(!wt) return;
+  try{
+    let src=null;
+    if(wt.startsWith('http')){
+      src=wt;
+    } else {
+      const apiEN='https://en.wikipedia.org/w/api.php?action=query&titles='+encodeURIComponent(wt)+'&prop=pageimages&pithumbsize=300&format=json&origin=*';
+      const apiFR=apiEN.replace('en.wikipedia','fr.wikipedia');
+      if(typeof CapacitorHttp!=='undefined'){
+        // Essai EN
+        const r=await CapacitorHttp.get({url:apiEN});
+        const d=JSON.parse(r.data);
+        const page=Object.values(d.query.pages)[0];
+        if(page&&page.thumbnail) src=page.thumbnail.source;
+        // Fallback FR
+        if(!src){
+          const r2=await CapacitorHttp.get({url:apiFR});
+          const d2=JSON.parse(r2.data);
+          const p2=Object.values(d2.query.pages)[0];
+          if(p2&&p2.thumbnail) src=p2.thumbnail.source;
+        }
+        if(!src) return;
+        const r3=await CapacitorHttp.get({url:src,responseType:'arraybuffer'});
+        imgCache[id]='data:image/jpeg;base64,'+r3.data;
+        wrap.innerHTML='';
+        const img=document.createElement('img');img.src=imgCache[id];wrap.appendChild(img);
+        return;
+      } else {
+        const r=await fetch(apiEN);
+        const d=await r.json();
+        const page=Object.values(d.query.pages)[0];
+        if(page&&page.thumbnail) src=page.thumbnail.source;
+        if(!src){
+          const r2=await fetch(apiFR);
+          const d2=await r2.json();
+          const p2=Object.values(d2.query.pages)[0];
+          if(p2&&p2.thumbnail) src=p2.thumbnail.source;
+        }
+      }
+    }
+    if(!src) return;
+    if(typeof CapacitorHttp!=='undefined'){
+      const r=await CapacitorHttp.get({url:src,responseType:'arraybuffer'});
+      imgCache[id]='data:image/jpeg;base64,'+r.data;
+      wrap.innerHTML='';
+      const img=document.createElement('img');img.src=imgCache[id];wrap.appendChild(img);
+    } else {
+      imgCache[id]=src;wrap.innerHTML='';
+      const img=document.createElement('img');img.src=src;wrap.appendChild(img);
+    }
+  }catch(e){}
+}
+
+let quizInitialized=false,quizScore=0,quizAnswered=0,quizOrder=[];
+function initQuiz(){
+  quizInitialized=true;quizScore=0;quizAnswered=0;
+  quizOrder=QUIZ.map((_,i)=>i).sort(()=>Math.random()-.5);renderQuiz();
+}
+function renderQuiz(){
+  if(!quizInitialized) return;
+  const c=document.getElementById('quizContainer');c.innerHTML='';
+  document.getElementById('quizScoreVal').textContent=quizScore+' / '+quizAnswered;
+  document.getElementById('quizResetBtn').style.display=quizAnswered===QUIZ.length?'block':'none';
+  quizOrder.forEach((qi,idx)=>{
+    const q=QUIZ[qi];
+    const div=document.createElement('div');div.className='quiz-card';
+    div.innerHTML='<div class="quiz-num">'+(idx+1)+' / '+QUIZ.length+'</div><div class="quiz-q">'+(lang==='fr'?q.qFr:q.qEn)+'</div>';
+    const ad=document.createElement('div');ad.className='quiz-answers';
+    q.ans.map((a,i)=>({a,i})).sort(()=>Math.random()-.5).forEach(({a,i})=>{
+      const btn=document.createElement('button');btn.className='quiz-answer';btn.textContent=a;
+      btn.onclick=function(){
+        if(btn.classList.contains('revealed')) return;
+        div.querySelectorAll('.quiz-answer').forEach(b=>b.classList.add('revealed'));
+        if(i===q.correct){btn.classList.add('correct');quizScore++;}
+        else{btn.classList.add('wrong');div.querySelectorAll('.quiz-answer').forEach(b=>{if(b.textContent===q.ans[q.correct])b.classList.add('correct');});}
+        quizAnswered++;
+        document.getElementById('quizScoreVal').textContent=quizScore+' / '+quizAnswered;
+        if(quizAnswered===QUIZ.length)document.getElementById('quizResetBtn').style.display='block';
+      };
+      ad.appendChild(btn);
+    });
+    div.appendChild(ad);c.appendChild(div);
+  });
+}
+function resetQuiz(){quizScore=0;quizAnswered=0;quizOrder=QUIZ.map((_,i)=>i).sort(()=>Math.random()-.5);renderQuiz();}
+
+const OTHER_APPS=[
+  {id:'6762632868',name:'Trains Mythiques',emoji:'🚂'},{id:'6762598304',name:'Mers & Océans',emoji:'🌊'},
+  {id:'6762594201',name:'Détroits',emoji:'🗺️'},{id:'6762522136',name:'Dynasties Chinoises',emoji:'🐉'},
+  {id:'6762452564',name:'Dynasties Russes',emoji:'🦅'},{id:'6762370541',name:'États-Unis',emoji:'🗽'},
+  {id:'6762263227',name:'Leaders Européens',emoji:'🇪🇺'},{id:'6762098486',name:'Familles Royales',emoji:'👑'},
+  {id:'6762076518',name:'Dames',emoji:'♟️'},{id:'6761993002',name:'Comédie Fr.',emoji:'🎭'},
+  {id:'6761769529',name:'Institut de France',emoji:'🏛️'},{id:'6761656628',name:'Compositeurs',emoji:'🎼'},
+  {id:'6761374601',name:'Maréchaux Napoléon',emoji:'⚔️'},{id:'6761335268',name:'Panthéon Paris',emoji:'🏛️'},
+  {id:'6761334922',name:'Académie française',emoji:'📚'},{id:'6761324444',name:'Présidents FR',emoji:'🇫🇷'},
+  {id:'6761322546',name:'Rois de France',emoji:'👑'},{id:'6761421276',name:'Capitales Europe',emoji:'🗺️'},
+];
+function loadApps(){
+  const grid=document.getElementById('appsGrid');
+  if(grid.children.length>0) return;
+  OTHER_APPS.forEach(app=>{
+    const item=document.createElement('div');item.className='app-item';
+    item.onclick=()=>window.open('https://apps.apple.com/app/id'+app.id,'_system');
+    const wrap=document.createElement('div');wrap.className='app-icon-wrap';wrap.innerHTML='<span>'+app.emoji+'</span>';
+    const numId=parseInt(app.id);
+    window['itcb'+numId]=function(d){if(d.results&&d.results[0]){wrap.innerHTML='';const img=document.createElement('img');img.src=d.results[0].artworkUrl60;wrap.appendChild(img);}};
+    const s=document.createElement('script');s.src='https://itunes.apple.com/lookup?id='+numId+'&callback=itcb'+numId;document.body.appendChild(s);
+    const lbl=document.createElement('div');lbl.className='app-name-lbl';lbl.textContent=app.name;
+    item.appendChild(wrap);item.appendChild(lbl);grid.appendChild(item);
+  });
+}
+
+renderChrono();
+renderMachines();
+</script>
+</body>
+</html>

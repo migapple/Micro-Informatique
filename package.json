@@ -1,0 +1,15 @@
+{
+  "name": "Micro Informatique",
+  "version": "1.0.0",
+  "description": "Micro Informatique",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'No build step needed'"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
+  },
+  "author": "Michel Garlandat",
+  "license": "UNLICENSED"
+}
