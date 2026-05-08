@@ -39,10 +39,21 @@ body{font-family:'Cormorant Garamond',Georgia,serif;color:var(--text)}
 .machine-name{font-family:'IM Fell English',serif;font-size:16px;color:var(--gold2);margin-bottom:2px}
 .machine-date{font-size:12px;color:var(--muted);margin-bottom:5px}
 .machine-short{font-size:13px;color:var(--text);line-height:1.5}
-.machine-detail{display:none;padding:0 12px 12px;border-top:1px solid var(--border)}
-.machine-detail.open{display:block}
-.machine-detail p{font-size:13px;line-height:1.7;color:var(--text);margin-top:10px}
 .machine-inventor{font-size:12px;color:var(--gold);margin-top:6px;font-style:italic}
+/* DETAIL PANEL */
+.detail-panel{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:200;flex-direction:column}
+.detail-panel.open{display:flex}
+.detail-header{padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:12px;padding-left:16px;padding-right:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;background:var(--bg)}
+.detail-back{background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;padding:0;line-height:1}
+.detail-title{font-family:'IM Fell English',serif;font-size:18px;color:var(--gold);flex:1}
+.detail-body{flex:1;overflow-y:auto;padding:16px;padding-bottom:calc(24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+.detail-img{width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:16px;background:var(--bg3)}
+.detail-img-placeholder{width:100%;height:160px;border-radius:10px;margin-bottom:16px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:64px}
+.detail-date{font-family:'IM Fell English',serif;font-size:14px;color:var(--gold2);margin-bottom:4px}
+.detail-inventor{font-size:13px;color:var(--gold);font-style:italic;margin-bottom:12px}
+.detail-short{font-size:15px;font-weight:600;color:var(--text);margin-bottom:12px;line-height:1.4}
+.detail-sep{height:1px;background:var(--border);margin:12px 0}
+.detail-text{font-size:14px;color:var(--muted);line-height:1.8}
 .quiz-wrap{padding:12px}
 .quiz-score-bar{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
 .quiz-score-label{font-size:13px;color:var(--muted)}
@@ -84,7 +95,7 @@ body{font-family:'Cormorant Garamond',Georgia,serif;color:var(--text)}
       <button class="tab active" onclick="switchTab('chrono',this)" id="tab-chrono">🕰️ Chronologie</button>
       <button class="tab" onclick="switchTab('machines',this)" id="tab-machines">🖥️ Machines</button>
       <button class="tab" onclick="switchTab('quiz',this)" id="tab-quiz">🎓 Quiz</button>
-      <button class="tab" onclick="openSettings()">⚙️ Apps</button>
+      <button class="tab" onclick="openSettings()">📱 Apps</button>
     </div>
   </div>
   <div class="main">
@@ -109,15 +120,27 @@ body{font-family:'Cormorant Garamond',Georgia,serif;color:var(--text)}
     <div class="settings-title" id="settingsTitleEl">Autres Apps</div>
   </div>
   <div class="settings-body">
+    <div class="settings-section-title" id="settingsFontLbl">Taille du texte</div>
+    <div class="font-size-row">
+      <span class="font-size-label" id="settingsFontLabel">Taille du texte</span>
+      <button class="font-btn" onclick="changeFontSize(-0.1)">A−</button>
+      <span class="font-preview" id="fontPreview">100%</span>
+      <button class="font-btn" onclick="changeFontSize(+0.1)">A+</button>
+    </div>
     <div class="settings-section-title" id="settingsAppsLbl">Mes applications</div>
     <div class="apps-grid" id="appsGrid"></div>
     <div class="badge-wrap"><img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/fr-fr" alt="App Store"></div>
-    <div style="margin-top:20px">
-      <button class="settings-btn" onclick="window.open('https://migapple.github.io','_system')">🌐 migapple.github.io</button>
-      <button class="settings-btn" onclick="window.open('https://migapple.github.io/microinformatique/','_system')">Support</button>
-    </div>
     <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px">© Michel Garlandat</div>
   </div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-header">
+    <button class="detail-back" onclick="closeDetail()">←</button>
+    <div class="detail-title" id="detailTitleEl"></div>
+  </div>
+  <div class="detail-body" id="detailBody"></div>
 </div>
 
 <script>
@@ -274,6 +297,10 @@ const ERAS=[
      fr:'ChatGPT — L\'IA générative pour tous',en:'ChatGPT — Generative AI for everyone',
      descFr:'OpenAI lance ChatGPT. En 5 jours : 1 million d\'utilisateurs (Facebook : 10 mois). En 2 mois : 100 millions. Les LLM transforment la programmation, l\'écriture et redéfinissent la valeur du travail intellectuel.',
      descEn:'OpenAI launches ChatGPT. In 5 days: 1 million users (Facebook: 10 months). In 2 months: 100 million. LLMs transform programming, writing and redefine the value of intellectual work.'},
+    {emoji:'🤖',dateFr:'2023',dateEn:'2023',
+     fr:'Claude (Anthropic) — L\'IA constitutionnelle',en:'Claude (Anthropic) — Constitutional AI',
+     descFr:'Anthropic, fondée par d\'anciens membres d\'OpenAI dont Dario et Daniela Amodei, lance Claude en 2023. Basé sur le principe d\'IA constitutionnelle (Constitutional AI), Claude est conçu pour être utile, inoffensif et honnête. Il devient l\'un des assistants IA les plus utilisés au monde.',
+     descEn:'Anthropic, founded by former OpenAI members including Dario and Daniela Amodei, launches Claude in 2023. Based on Constitutional AI principles, Claude is designed to be helpful, harmless and honest. It becomes one of the most widely used AI assistants in the world.'},
   ]},
 ];
 
@@ -324,7 +351,7 @@ const MACHINES=[
   {id:'m7',emoji:'🌐',
    fr:'NeXT Cube',en:'NeXT Cube',date:'1988',
    inventorFr:'Steve Jobs — NeXT Computer, États-Unis',inventorEn:'Steve Jobs — NeXT Computer, United States',
-   wt:'NeXT_Computer',                  // EN → photo du cube noir iconique
+   wt:'NeXTcube',                  // EN → photo du cube noir iconique
    shortFr:'La machine sur laquelle le Web a été inventé',shortEn:'The machine on which the Web was invented',
    detailFr:'Après son éviction d\'Apple, Jobs fonde NeXT. Le NeXT Cube à 6 500 dollars tournait NeXTSTEP (Objective-C). C\'est sur cette machine que Berners-Lee invente le Web au CERN en 1990. NeXTSTEP deviendra macOS.',
    detailEn:'After being ousted from Apple, Jobs founds NeXT. The $6,500 NeXT Cube ran NeXTSTEP (Objective-C). It\'s on this machine that Berners-Lee invents the Web at CERN in 1990. NeXTSTEP will become macOS.'},
@@ -356,13 +383,6 @@ const MACHINES=[
    shortFr:'Le GPU, moteur inattendu de l\'intelligence artificielle',shortEn:'The GPU, unexpected engine of artificial intelligence',
    detailFr:'NVIDIA lance CUDA pour utiliser les GPU en calcul scientifique. Les GPU, conçus pour le rendu 3D parallèle, se révèlent parfaits pour entraîner des réseaux de neurones. NVIDIA devient la société la plus valorisée au monde en 2024.',
    detailEn:'NVIDIA launches CUDA to use GPUs for scientific computing. GPUs, designed for parallel 3D rendering, prove perfect for training neural networks. NVIDIA becomes the world\'s most valuable company in 2024.'},
-  {id:'m12',emoji:'🤯',
-   fr:'ChatGPT / GPT-4',en:'ChatGPT / GPT-4',date:'2022',
-   inventorFr:'Sam Altman & équipe — OpenAI, États-Unis',inventorEn:'Sam Altman & team — OpenAI, United States',
-   wt:'ChatGPT',                        // FR et EN → photo du logo
-   shortFr:'100 millions d\'utilisateurs en 2 mois',shortEn:'100 million users in 2 months',
-   detailFr:'ChatGPT atteint 100 millions d\'utilisateurs en 2 mois, battant tous les records. GPT-4 (2023) réussit les examens de droit et de médecine. Les LLM transforment la programmation, l\'écriture et la médecine.',
-   detailEn:'ChatGPT reaches 100 million users in 2 months, breaking all records. GPT-4 (2023) passes law and medical exams. LLMs transform programming, writing and medicine.'},
 ];
 
 const QUIZ=[
@@ -421,7 +441,7 @@ function renderMachines(){
   MACHINES.forEach(m=>{
     const card=document.createElement('div');card.className='machine-card';
     const hdr=document.createElement('div');hdr.className='machine-header';
-    hdr.onclick=()=>document.getElementById('det-'+m.id).classList.toggle('open');
+    hdr.onclick=()=>openDetail(m);
     const wrap=document.createElement('div');wrap.className='machine-img-wrap';wrap.id='imgwrap-'+m.id;
     if(imgCache[m.id]){
       const img=document.createElement('img');img.src=imgCache[m.id];wrap.appendChild(img);
@@ -432,64 +452,102 @@ function renderMachines(){
     const info=document.createElement('div');
     info.innerHTML='<div class="machine-name">'+(lang==='fr'?m.fr:m.en)+'</div><div class="machine-date">'+m.date+'</div><div class="machine-short">'+(lang==='fr'?m.shortFr:m.shortEn)+'</div>';
     hdr.appendChild(wrap);hdr.appendChild(info);
-    const det=document.createElement('div');det.className='machine-detail';det.id='det-'+m.id;
-    det.innerHTML='<p>'+(lang==='fr'?m.detailFr:m.detailEn)+'</p><div class="machine-inventor">'+(lang==='fr'?m.inventorFr:m.inventorEn)+'</div>';
-    card.appendChild(hdr);card.appendChild(det);list.appendChild(card);
+    card.appendChild(hdr);list.appendChild(card);
   });
 }
 
-async function loadImg(id,wt,wrap){
-  if(!wt) return;
-  try{
-    let src=null;
-    if(wt.startsWith('http')){
-      src=wt;
-    } else {
-      const apiEN='https://en.wikipedia.org/w/api.php?action=query&titles='+encodeURIComponent(wt)+'&prop=pageimages&pithumbsize=300&format=json&origin=*';
-      const apiFR=apiEN.replace('en.wikipedia','fr.wikipedia');
-      if(typeof CapacitorHttp!=='undefined'){
-        // Essai EN
-        const r=await CapacitorHttp.get({url:apiEN});
-        const d=JSON.parse(r.data);
-        const page=Object.values(d.query.pages)[0];
-        if(page&&page.thumbnail) src=page.thumbnail.source;
-        // Fallback FR
-        if(!src){
-          const r2=await CapacitorHttp.get({url:apiFR});
-          const d2=JSON.parse(r2.data);
-          const p2=Object.values(d2.query.pages)[0];
-          if(p2&&p2.thumbnail) src=p2.thumbnail.source;
+function openDetail(m){
+  document.getElementById('detailTitleEl').textContent=lang==='fr'?m.fr:m.en;
+  const body=document.getElementById('detailBody');
+  body.innerHTML='';
+  // Image
+  const imgWrap=document.createElement('div');
+  if(imgCache[m.id]){
+    const img=document.createElement('img');img.className='detail-img';img.src=imgCache[m.id];
+    imgWrap.appendChild(img);
+  } else {
+    const ph=document.createElement('div');ph.className='detail-img-placeholder';ph.textContent=m.emoji;
+    imgWrap.appendChild(ph);
+    // Essaye de charger l'image pour le panel aussi
+    loadImgInto(m.id,m.wt,imgWrap,ph);
+  }
+  body.appendChild(imgWrap);
+  // Date
+  const date=document.createElement('div');date.className='detail-date';date.textContent=m.date;
+  body.appendChild(date);
+  // Inventeur
+  const inv=document.createElement('div');inv.className='detail-inventor';inv.textContent=lang==='fr'?m.inventorFr:m.inventorEn;
+  body.appendChild(inv);
+  // Court
+  const sh=document.createElement('div');sh.className='detail-short';sh.textContent=lang==='fr'?m.shortFr:m.shortEn;
+  body.appendChild(sh);
+  // Séparateur
+  const sep=document.createElement('div');sep.className='detail-sep';body.appendChild(sep);
+  // Texte long
+  const txt=document.createElement('div');txt.className='detail-text';txt.textContent=lang==='fr'?m.detailFr:m.detailEn;
+  body.appendChild(txt);
+  document.getElementById('detailPanel').classList.add('open');
+}
+
+function closeDetail(){
+  document.getElementById('detailPanel').classList.remove('open');
+}
+
+    async function loadImgInto(id,wt,container,placeholder){
+      if(!wt) return;
+      try{
+        let src=null;
+        if(wt.startsWith('http')){
+          src=wt; // URL directe → on saute l'API Wikipedia
+        } else {
+          const apiEN='https://en.wikipedia.org/w/api.php?action=query&titles='+encodeURIComponent(wt)+'&prop=pageimages&pithumbsize=600&format=json&origin=*';
+          const apiFR=apiEN.replace('en.wikipedia','fr.wikipedia');
+          if(typeof CapacitorHttp!=='undefined'){
+            const r=await CapacitorHttp.get({url:apiEN});
+            const d=JSON.parse(r.data);
+            const page=Object.values(d.query.pages)[0];
+            if(page&&page.thumbnail) src=page.thumbnail.source;
+            if(!src){
+              const r2=await CapacitorHttp.get({url:apiFR});
+              const d2=JSON.parse(r2.data);
+              const p2=Object.values(d2.query.pages)[0];
+              if(p2&&p2.thumbnail) src=p2.thumbnail.source;
+            }
+          } else {
+            const r=await fetch(apiEN);
+            const d=await r.json();
+            const page=Object.values(d.query.pages)[0];
+            if(page&&page.thumbnail) src=page.thumbnail.source;
+            if(!src){
+              const r2=await fetch(apiFR);
+              const d2=await r2.json();
+              const p2=Object.values(d2.query.pages)[0];
+              if(p2&&p2.thumbnail) src=p2.thumbnail.source;
+            }
+          }
         }
         if(!src) return;
-        const r3=await CapacitorHttp.get({url:src,responseType:'arraybuffer'});
-        imgCache[id]='data:image/jpeg;base64,'+r3.data;
-        wrap.innerHTML='';
-        const img=document.createElement('img');img.src=imgCache[id];wrap.appendChild(img);
-        return;
-      } else {
-        const r=await fetch(apiEN);
-        const d=await r.json();
-        const page=Object.values(d.query.pages)[0];
-        if(page&&page.thumbnail) src=page.thumbnail.source;
-        if(!src){
-          const r2=await fetch(apiFR);
-          const d2=await r2.json();
-          const p2=Object.values(d2.query.pages)[0];
-          if(p2&&p2.thumbnail) src=p2.thumbnail.source;
+        // Fetch de l'image en arraybuffer (obligatoire dans WKWebView)
+        if(typeof CapacitorHttp!=='undefined'){
+          const r3=await CapacitorHttp.get({url:src,responseType:'arraybuffer'});
+          imgCache[id]='data:image/jpeg;base64,'+r3.data;
+        } else {
+          imgCache[id]=src; // navigateur : URL directe suffit
         }
-      }
+        // Mise à jour liste + panel
+        const listWrap=document.getElementById('imgwrap-'+id);
+        if(listWrap){listWrap.innerHTML='';const img=document.createElement('img');img.src=imgCache[id];listWrap.appendChild(img);}
+        if(placeholder&&placeholder.parentNode===container){
+          container.removeChild(placeholder);
+          const img=document.createElement('img');img.className='detail-img';img.src=imgCache[id];
+          container.insertBefore(img,container.firstChild);
+        }
+      }catch(e){}
     }
-    if(!src) return;
-    if(typeof CapacitorHttp!=='undefined'){
-      const r=await CapacitorHttp.get({url:src,responseType:'arraybuffer'});
-      imgCache[id]='data:image/jpeg;base64,'+r.data;
-      wrap.innerHTML='';
-      const img=document.createElement('img');img.src=imgCache[id];wrap.appendChild(img);
-    } else {
-      imgCache[id]=src;wrap.innerHTML='';
-      const img=document.createElement('img');img.src=src;wrap.appendChild(img);
-    }
-  }catch(e){}
+
+// loadImg pour la liste : délègue à loadImgInto
+function loadImg(id,wt,wrap){
+  loadImgInto(id,wt,wrap,null);
 }
 
 let quizInitialized=false,quizScore=0,quizAnswered=0,quizOrder=[];
@@ -526,16 +584,32 @@ function renderQuiz(){
 function resetQuiz(){quizScore=0;quizAnswered=0;quizOrder=QUIZ.map((_,i)=>i).sort(()=>Math.random()-.5);renderQuiz();}
 
 const OTHER_APPS=[
-  {id:'6762632868',name:'Trains Mythiques',emoji:'🚂'},{id:'6762598304',name:'Mers & Océans',emoji:'🌊'},
-  {id:'6762594201',name:'Détroits',emoji:'🗺️'},{id:'6762522136',name:'Dynasties Chinoises',emoji:'🐉'},
+  {id:'6763507194',name:'Hotels Rooftop',emoji:'🏨'},{id:'6762618424',name:'Ponts du Monde',emoji:'🌉'},
+  {id:'6763076110',name:'Paquebots',emoji:'🚢'},{id:'6763069304',name:'Avions de Légende',emoji:'✈️'},
+  {id:'6763071567',name:'Voitures Légende',emoji:'🚗'},{id:'6762077646',name:'Flip Board',emoji:'🎮'},
+  {id:'6762632868',name:'Trains Mythiques',emoji:'🚂'},{id:'6762823383',name:'Châteaux Loire',emoji:'🏰'},
+  {id:'6762598304',name:'Mers & Océans',emoji:'🌊'},{id:'6762594201',name:'Détroits',emoji:'🗺️'},
+  {id:'6762558969',name:'ColorCodeMind',emoji:'🎨'},{id:'6762552826',name:'Lexigo',emoji:'🔤'},
+  {id:'6762542395',name:'Conquêtes Sociales',emoji:'✊'},{id:'6762522136',name:'Dynasties Chinoises',emoji:'🐉'},
   {id:'6762452564',name:'Dynasties Russes',emoji:'🦅'},{id:'6762370541',name:'États-Unis',emoji:'🗽'},
-  {id:'6762263227',name:'Leaders Européens',emoji:'🇪🇺'},{id:'6762098486',name:'Familles Royales',emoji:'👑'},
-  {id:'6762076518',name:'Dames',emoji:'♟️'},{id:'6761993002',name:'Comédie Fr.',emoji:'🎭'},
-  {id:'6761769529',name:'Institut de France',emoji:'🏛️'},{id:'6761656628',name:'Compositeurs',emoji:'🎼'},
-  {id:'6761374601',name:'Maréchaux Napoléon',emoji:'⚔️'},{id:'6761335268',name:'Panthéon Paris',emoji:'🏛️'},
-  {id:'6761334922',name:'Académie française',emoji:'📚'},{id:'6761324444',name:'Présidents FR',emoji:'🇫🇷'},
-  {id:'6761322546',name:'Rois de France',emoji:'👑'},{id:'6761421276',name:'Capitales Europe',emoji:'🗺️'},
+  {id:'6762091681',name:'Bataille Navale',emoji:'⚓'},{id:'6762098486',name:'Familles Royales',emoji:'👑'},
+  {id:'6762263227',name:'Leaders Européens',emoji:'🇪🇺'},{id:'6762346365',name:'Pays UE',emoji:'🌍'},
+  {id:'6762256169',name:'Présidents US',emoji:'🦅'},{id:'6762076518',name:'Dames',emoji:'♟️'},
+  {id:'6761993002',name:'Comédie Fr.',emoji:'🎭'},{id:'6761769529',name:'Institut de France',emoji:'🏛️'},
+  {id:'6761324444',name:'Présidents FR',emoji:'🇫🇷'},{id:'6761709149',name:'Saint-Denis',emoji:'⛪'},
+  {id:'6761685637',name:'Arbres de France',emoji:'🌳'},{id:'6761363063',name:'Sénat Paris',emoji:'🏛️'},
+  {id:'6761656628',name:'Compositeurs',emoji:'🎼'},{id:'6761374601',name:'Maréchaux Napoléon',emoji:'⚔️'},
+  {id:'6761322546',name:'Rois de France',emoji:'👑'},{id:'6761361079',name:'Assemblée Paris',emoji:'🏛️'},
+  {id:'6761335268',name:'Panthéon Paris',emoji:'🏛️'},{id:'1483084001',name:'Belote Calc',emoji:'🃏'},
+  {id:'6760751055',name:'Cimetières Paris',emoji:'🪦'},{id:'1481989301',name:'Tarots Calc',emoji:'🔮'},
+  {id:'6761334922',name:'Académie fr.',emoji:'📚'},{id:'6761293938',name:'Scènes Paris',emoji:'🎭'},
+  {id:'6761271324',name:'MediSafe',emoji:'💊'},{id:'6760617965',name:'MesRestaurants',emoji:'🍽️'},
+  {id:'6760126279',name:'Cave Manager',emoji:'🍷'},{id:'6760890465',name:'Musées Paris',emoji:'🖼️'},
+  {id:'6760929391',name:'Théâtres Paris',emoji:'🎬'},{id:'6759219383',name:'Frigo Manager',emoji:'🧊'},
+  {id:'1475884625',name:'Toi ou Moi',emoji:'❤️'},{id:'6761421276',name:'Capitales Europe',emoji:'🗺️'},
+  {id:'6762006105',name:'Iconic Covers',emoji:'📰'},
 ];
+
 function loadApps(){
   const grid=document.getElementById('appsGrid');
   if(grid.children.length>0) return;
@@ -553,6 +627,25 @@ function loadApps(){
 
 renderChrono();
 renderMachines();
+
+// ── FONT SIZE ────────────────────────────────────────────────────
+let fontScale = parseFloat(localStorage.getItem('fs') || '1.0');
+const isIPad = navigator.userAgent.includes('iPad') ||
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+if(isIPad && !localStorage.getItem('fs')) fontScale = 1.3;
+applyFontScale();
+
+function applyFontScale(){
+  document.documentElement.style.setProperty('--fs', fontScale);
+  const pct = Math.round(fontScale * 100) + '%';
+  const el = document.getElementById('fontPreview');
+  if(el) el.textContent = pct;
+  localStorage.setItem('fs', fontScale);
+}
+function changeFontSize(delta){
+  fontScale = Math.min(1.8, Math.max(0.8, Math.round((fontScale + delta) * 10) / 10));
+  applyFontScale();
+}
 </script>
 </body>
 </html>
